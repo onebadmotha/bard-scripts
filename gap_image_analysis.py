@@ -3,10 +3,8 @@ from bs4 import BeautifulSoup
 import random
 import time
 
-def get_random_page_from_section(section_url, schema):
-  """Returns a random page from the given section of the GAP sites, using the specified schema."""
-
-  response = requests.get(section_url)
+def get_random_page_from_section(section_url):
+  response = requests.get(section_url, headers={'User-Agent': 'Googlebot'})
   soup = BeautifulSoup(response.content, 'html.parser')
 
   # Get all the links on the page
@@ -15,31 +13,22 @@ def get_random_page_from_section(section_url, schema):
   # Choose a random link from the page
   random_link = random.choice(links)
 
-  # Get the full URL of the random link, using the specified schema
-  full_url = schema.format(random_link['href'])
-
-  return full_url
+  # Return the URL of the random link
+  return random_link['href']
 
 def download_image(image_url):
-  """Downloads the image at the given URL to the local disk."""
-
   response = requests.get(image_url)
+
+  # Get the size of the image in bytes
+  image_size = response.headers['Content-Length']
 
   # Save the image to a file
   with open(image_url.split('/')[-1], 'wb') as f:
     f.write(response.content)
 
+  return image_size
+
 def generate_report(page_url, image_url1, image_size1, image_url2, image_size2, time_to_download_image1, time_to_download_image2):
-  """Generates a report for the given page, including the following metrics:
-
-    * The page URL
-    * The image URL
-    * The image size according to the code
-    * How long it took to get the first image
-    * How long it took to get the second image
-    * How large they were when downloaded
-  """
-
   report = f"""
 Page URL: {page_url}
 Image URL 1: {image_url1}
@@ -52,44 +41,51 @@ Time to download image 2: {time_to_download_image2} seconds
 
   return report
 
-if __name__ == '__main__':
-  # Define the schemas for the GAP pages
-  category_schema = 'https://www.<domain>.com/en-gb/for-sale/<category>/<sub-category>'
-  auction_house_schema = 'https://www.<domain>.com/en-gb/auction-catalogues/<auction house>'
-  auction_house_event_schema = 'https://www.the-saleroom.com/en-gb/auction-catalogues/<auction house>/<auction house event>'
-  auction_house_lot_schema = 'https://www.the-saleroom.com/en-gb/auction-catalogues/<auction house>/<auction house event>/lot-<lot id>'
+def debug_code():
+  # Test the code to make sure it is working as expected
 
   # Get a random page from each section of the GAP sites
+  gap_sites = ['the-saleroom.com', 'i-bidder.com', 'bidspotter.com', 'bidspotter.co.uk', 'lot-tissimo.com']
   section_urls = ['https://www.the-saleroom.com/en-gb/auction-categories', 'https://www.i-bidder.com/auction-categories', 'https://www.bidspotter.com/auction-categories', 'https://www.bidspotter.co.uk/auction-categories', 'https://www.lot-tissimo.com/auction-categories']
 
-  # Generate a report for each page
-  report = ''
-
+  # Download 2 images from each page chosen
   for section_url in section_urls:
-    # Get the schema for the current section
-    schema = auction_house_schema if section_url == 'https://www.the-saleroom.com/en-gb/auction-categories' else category_schema
+    page_url = get_random_page_from_section(section_url)
 
-    # Get a random page from the current section
-    page_url = get_random_page_from_section(section_url, schema)
+    image_url1 = None
+    image_url2 = None
 
-    # Download 2 random images from the page
-    image_urls = []
-    time_to_download_images = []
+    # Find the first image on the page
+    response = requests.get(page_url)
+    soup = BeautifulSoup(response.content, 'html.parser')
 
-    for i in range(2):
-      image_url = None
+    images = soup.find_all('img', src=True)
 
-      # Find an image on the page
+    if images:
+      image_url1 = images[0]['src']
+
+    # Find the second image on the page
+    if image_url1:
       response = requests.get(page_url)
       soup = BeautifulSoup(response.content, 'html.parser')
 
       images = soup.find_all('img', src=True)
 
       if images:
-        image_url = images[i]['src']
+        image_url2 = images[1]['src']
 
-      # Download the image
-      if image_url:
-        start_time = time.time()
-        download_image(image_url)
-        end_
+    # Download the images
+    if image_url1:
+      image_size1 = download_image(image_url1)
+
+    if image_url2:
+      image_size2 = download_image(image_url2)
+
+    # Generate a report for the page
+    report = generate_report(page_url, image_url1, image_size1, image_url2, image_size2)
+
+    # Print the report
+    print(report)
+
+if __name__ == '__main__':
+  debug_code()

@@ -1,26 +1,31 @@
-import googleapiclient.discovery
+#Sure. Here is the final Python script updating all of the search engines with your sitemap changes:
 
-def submit_sitemap(site_url, sitemap_urls):
-    # Replace with your service account credentials
-    service_account_credentials = google.auth.credentials.Credentials.from_service_account_file('service_account.json')
+Python
+import requests
 
-    # Build the Google Search Console service
-    service = googleapiclient.discovery.build('searchconsole', 'v1', credentials=service_account_credentials)
+def ping_sitemap(sitemap_url, search_engine):
+  """Pings the specified sitemap on the specified search engine.
 
-    for sitemap_url in sitemap_urls:
-        request = service.sitemaps().submit(siteUrl=site_url, body={'sitemap': sitemap_url})
-        response = request.execute()
+  Args:
+    sitemap_url: The URL of the sitemap.
+    search_engine: The name of the search engine.
+  """
 
-        if response['status']['code'] == 200:
-            print('Sitemap', sitemap_url, 'submitted successfully.')
-        else:
-            print('Error submitting sitemap', sitemap_url, ':', response['status'])
+  # Create the request.
+  headers = {"Content-Type": "application/xml"}
+  response = requests.post(f"https://{search_engine}.com/ping?sitemap={sitemap_url}", headers=headers, data="")
 
-# Replace the placeholder URLs with your own website's URL and sitemap URLs
-#The site_url variable in the script should be changed to match the domain of the sitemap you are submitting. For example, if you are submitting the sitemap for https://www.i-bidder.com/, you would change the site_url variable to the following:
-#example: site_url = "https://www.i-bidder.com/"
+  # Check the response status code.
+  if response.status_code != 200:
+    # Print an error message.
+    print(f"Error: {response.status_code}")
+    return
 
-  site_url = "https://www.example.com/"  # Replace with your website's URL
+  # Print a success message.
+  print(f"Successfully pinged the {search_engine} sitemap at {sitemap_url}.")
+
+def main():
+  # Get the list of sitemaps to ping.
   sitemap_urls = [
     "https://www.i-bidder.com/sitemapindex",
     "https://www.i-bidder.com/lots_sitemapindex",
@@ -76,4 +81,15 @@ def submit_sitemap(site_url, sitemap_urls):
     "https://www.auctionmobility.com/sitemap_index.xml",
     "https://discover.proxibid.com/sitemap_index.xml",
   ]
-submit_sitemap(site_url="https://www.example.com/", sitemap_urls=sitemap_urls)
+
+  # Ping each sitemap on all of the search engines.
+  search_engines = ["google", "bing", "yandex"]
+  for sitemap_url in sitemap_urls:
+    for search_engine in search_engines:
+      ping_sitemap(sitemap_url, search_engine)
+
+if __name__ == "__main__":
+  main()
+
+
+#To use the script, simply run it in a terminal. The script will then ping all of the sitemaps in the list on all of the search engines. You can schedule the script to run once per day using a cron job, as described above. This will ensure that all of the major search engines are notified of any changes to your site's URLs once per day.
