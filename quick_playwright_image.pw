@@ -1,0 +1,23 @@
+import playwright
+
+async def main():
+    browser = await playwright.chromium.launch()
+    page = await browser.new_page()
+
+    # Navigate to the website.
+    await page.goto("https://example.com")
+
+    # Get all of the image elements on the website.
+    images = await page.query_selector_all("img")
+
+    # Download each image to the local filesystem.
+    for image in images:
+        image_src = await image.get_attribute("src")
+        image_name = os.path.basename(image_src)
+        with open(f"/home/rob/tmp/images/{image_name}", "wb") as f:
+            await page.download(image_src, f)
+
+    await browser.close()
+
+if __name__ == "__main__":
+    asyncio.run(main())

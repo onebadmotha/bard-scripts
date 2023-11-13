@@ -20,3 +20,6 @@ if response.status_code == 200:
 else:
   # Print an error message.
   print(f"Error: {response.status_code}")
+
+GSC API
+AIzaSyBLXNObXIyp5uK9VZ8GSi6-WpAIweYL0mU
