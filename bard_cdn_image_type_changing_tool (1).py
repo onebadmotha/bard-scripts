@@ -1,5 +1,4 @@
 import requests
-import re
 
 def is_cdn_changing_images_to_webp(url):
   """Checks if the CDN is changing images to WebP for the client.
@@ -11,23 +10,14 @@ def is_cdn_changing_images_to_webp(url):
     True if the CDN is changing images to WebP for the client, False otherwise.
   """
 
-  # Get the HTML of the webpage.
+  # Get the original image URL from the HTML of the webpage.
   response = requests.get(url)
   html = response.content
 
-  # Decode the HTML bytes.
-  html = html.decode('utf-8')
+  # Extract the image URL from the HTML.
+  image_url = re.findall(r'src="([^"]+)"', html)[0]
 
-  # Extract the image URLs from the HTML.
-  image_urls = re.findall(r'src="([^"]+)"', html)
-
-  if image_urls:
-    image_url = image_urls[0]
-  else:
-    # There are no images on the webpage, or the images on the webpage are not being served from a CDN.
-    return False
-
-  # Request the image from the CDN using the first image URL.
+  # Request the image from the CDN using the original image URL.
   response = requests.get(image_url)
 
   # Check the Content-Type header of the response.
@@ -40,9 +30,8 @@ def is_cdn_changing_images_to_webp(url):
 
 # Example usage:
 
-url = input("Enter the URL of the webpage to check: ")
+url = "https://example.com/index.html"
 
 if is_cdn_changing_images_to_webp(url):
   print("The CDN is changing images to WebP for the client.")
 else:
-  print("The CDN is not changing images to WebP for the client.")

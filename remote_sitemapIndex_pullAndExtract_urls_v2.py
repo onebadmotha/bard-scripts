@@ -1,6 +1,8 @@
+import requests
 import gzip
 import xml.etree.ElementTree as ET
 import os
+
 
 def extract_and_save_urls_from_sitemap(sitemap_url, output_directory):
     # Fetch the sitemap content
